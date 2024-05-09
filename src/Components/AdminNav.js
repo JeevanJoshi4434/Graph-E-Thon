@@ -14,8 +14,9 @@ import MyVerticallyCenteredModal from './Modal';
 import { Button, Modal } from 'react-bootstrap';
 import AddStock from '../Pages/Admin/AddItem';
 import axios from 'axios';
+import { BigScreenLoader } from '../Pages/Auth/Signup';
 
-export default function Nav() {
+export default function Nav({getUser=()=>{}}) {
     const [openNavSecond, setOpenNavSecond] = useState(false);
     const [modalShow, setModalShow] = useState(false);
     const [modalShow2, setModalShow2] = useState(false);
@@ -35,11 +36,57 @@ export default function Nav() {
             if(res.data.success){
                 setFilteredData([]);
                 setModalShow2(false);
+                getUser();
                 alert("Data added successfully"); 
             }
             
         } catch (error) {
             console.log(error);
+        }
+    }
+    const [location, setLocation] = useState(null);
+
+    const [Loader, setLoader] = useState({
+        visible: false,
+        text: '',
+        desc: ''
+    })
+
+    const getLocation = () => {
+        try {
+            setLoader({ ...Loader, visible: true, text: 'Fetching Location', desc: 'Please wait while we are fetching your location' });
+            if (navigator.geolocation) {
+                navigator.geolocation.getCurrentPosition(
+                    position => {
+                        const { latitude, longitude } = position.coords;
+                        setLocation({ latitude, longitude });
+                        updateLocation();
+                    },
+                    error => {
+                        console.error('Error getting location:', error);
+                        setLoader({ ...Loader, visible: false });
+                    }
+                );
+            } else {
+                console.error('Geolocation is not supported by this browser.');
+                setLoader({ ...Loader, visible: false });
+            }
+
+        } catch (error) {
+        } finally {
+        }
+    }
+    
+    const updateLocation = async()=>{
+        try {
+            const res = await axios.post('/api/v1/update/location', {
+                latitude: location.latitude, longitude: location.longitude 
+            })
+        } catch (error) {
+            
+        }finally{
+            setLoader({ ...Loader, visible: false });
+            setModalShow(false);
         }
     }
     return (
@@ -74,7 +121,7 @@ export default function Nav() {
                 Heading={"Update Location"}
                 Content={" Are you sure you want to update your location?"}
                 ButtonText={"Update"}
-                onConfirm={() => { console.log("Confirmed"); setModalShow(false); }}
+                onConfirm={getLocation}
                 onHide={() => setModalShow(false)}
             />
             <Modal
@@ -93,6 +140,7 @@ export default function Nav() {
                     <Button onClick={UploadData}>Update</Button>
                 </Modal.Footer>
             </Modal>
+            {Loader.visible && <BigScreenLoader {...Loader} />}
         </>
     );
 }

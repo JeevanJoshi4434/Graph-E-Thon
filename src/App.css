@@ -74,7 +74,7 @@ header {
 .shoppingCart .cart_content {
   width: 20px;
   height: 20px;
-  background: #f8901c;
+  background: #3b71ca;
   border-radius: 100%;
   min-width: 20px;
   min-height: 20px;
@@ -205,7 +205,7 @@ main {
   position: absolute;
   height: 60px;
   width: 60px;
-  background: #f8901c;
+  background: #3b71ca;
   top: -50%;
   border-radius: 50%;
   border: 6px solid #faf9fb;
@@ -311,12 +311,12 @@ main {
 }
 
 .bannerContent p span {
-  color: #f8901c;
+  color: #3b71ca;
   font-weight: 500;
 }
 
 .bannerContent a {
-  background: #f8901c;
+  background: #3b71ca;
   padding: 5px 15px;
   border-radius: 100vw;
   color: #faf9fb;
@@ -354,12 +354,12 @@ main {
 
 .subMenuContianer .viewAll p {
   font-size: 12px;
-  color: #f8901c;
+  color: #3b71ca;
   font-weight: 400;
 }
 
 .subMenuContianer .viewAll i {
-  background: #f8901c;
+  background: #3b71ca;
   width: 20px;
   height: 20px;
   min-width: 20px;
@@ -407,7 +407,7 @@ main {
 
 .rowMenuCard:hover,
 .rowMenuCard.active {
-  background: #f8901c;
+  background: #3b71ca;
 }
 
 .rowMenuCard .imgBox {
@@ -444,7 +444,7 @@ main {
 .rowMenuCard h3 {
   font-size: 14px;
   font-weight: 500;
-  color: #f8901c;
+  color: #3b71ca;
   transition: 0.5s;
 }
 
@@ -460,7 +460,7 @@ main {
   align-items: center;
   justify-content: center;
   border-radius: 5px;
-  background: #f8901c;
+  background: #3b71ca;
   transition: 0.5s;
 }
 
@@ -476,19 +476,16 @@ main {
 
 .rowMenuCard:hover .loadMenu .MuiSvgIcon-root,
 .rowMenuCard.active .loadMenu .MuiSvgIcon-root {
-  color: #f8901c;
+  color: #3b71ca;
 }
 
 .dishItemContainer {
-  display: flex;
-  justify-content: space-around;
   align-items: center;
-  flex-wrap: wrap;
 }
 
 .itemCard {
   width: 160px;
-  height: 180px;
+  height: 191.5px;
 
   position: relative;
   display: flex;
@@ -500,7 +497,7 @@ main {
 
 .isFavourite {
   position: absolute;
-  top: 80px;
+  top: 14px;
   right: 10px;
   transition: 0.5s;
 }
@@ -566,12 +563,12 @@ main {
 }
 
 .itemContent .bottom .price span {
-  color: #f8901c;
+  color: #3b71ca;
   font-size: 12px;
 }
 
 .itemContent .addToCart {
-  background: #f8901c;
+  background: #3b71ca;
   width: 25px;
   height: 25px;
   border-radius: 100%;
@@ -588,7 +585,7 @@ main {
 }
 
 .orange {
-  color: #f8901c !important;
+  color: #3b71ca !important;
 }
 
 .gray {
@@ -638,7 +635,7 @@ main {
   left: 0;
   width: 100%;
   height: 100%;
-  background: #f8901c;
+  background: #3b71ca;
   transform: rotate(5deg);
   border-radius: 15px;
   filter: blur(2px);
@@ -815,7 +812,7 @@ main {
 }
 
 .cartItem .itemSection .itemQuantity span {
-  color: #f8901c;
+  color: #3b71ca;
 }
 
 .cartItem .itemSection .itemQuantity .quantity {
@@ -845,7 +842,7 @@ main {
 
 .cartItem .itemPrice .dolorSign {
   font-size: 12px;
-  color: #f8901c;
+  color: #3b71ca;
 }
 
 .cartItem .itemPrice .itemPriceValue {
@@ -876,7 +873,7 @@ main {
 
 .totalSection p span {
   font-size: 14px;
-  color: #f8901c;
+  color: #3b71ca;
 }
 
 .checkOut {
@@ -884,7 +881,7 @@ main {
   border: none;
   width: 100%;
   padding: 10px 20px;
-  background: #f8901c;
+  background: #3b71ca;
   border-radius: 100vw;
   color: #faf9fb;
   font-size: 18px;

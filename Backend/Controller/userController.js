@@ -164,34 +164,55 @@ function deg2rad(deg) {
 }
 
 // Function to find the nearest medical shops with the specified medicine available
-async function findNearbyMedicalShops(userLat, userLon, medicineName, maxDistance) {
-    const medicalShops = await User.find({ isMedical: true });
-    const nearbyShops = [];
+async function findNearbyMedicalShops(userLat, userLon, medicineName="", maxDistance) {
+    try {
 
-    for (const shop of medicalShops) {
-        const distance = getDistance(userLat, userLon, shop.latitude, shop.longitude);
-        if (distance <= maxDistance && shop.medicines.find(med => med.Name.toLowerCase() === medicineName.toLowerCase())) {
-            nearbyShops.push({ name: shop.name, latitude: shop.latitude, longitude: shop.longitude, distance });
-        }
-    }
-
-    // If no shops found within the max distance, find the nearest one
-    if (nearbyShops.length === 0) {
-        let minDistance = Infinity;
-        let nearestShop = null;
+        const medicalShops = await User.find({ isMedical: true });
+        let nearbyShops = [];
         for (const shop of medicalShops) {
-            const distance = getDistance(userLat, userLon, shop.latitude, shop.longitude);
-            if (distance < minDistance) {
-                minDistance = distance;
+            const distance = getDistance(userLat, userLon, shop.location.latitude, shop.location.longitude);
+            if (distance <= maxDistance && shop.medicines.find(med => med.name.toLowerCase() === medicineName.toLowerCase())) {
                 nearestShop = shop;
+                let isContainsMedicine = nearestShop.medicines.filter(med => med.name.toLowerCase() === medicineName.toLowerCase());
+                if(isContainsMedicine.length === 0) continue;
+                nearbyShops.push({
+                    latitude: shop.location.latitude,
+                    longitude: shop.location.longitude,
+                    shopName: nearestShop.ShopName,
+                    name: nearestShop.name,
+                    distance: distance >= 1 ? distance.toFixed(1) : Math.round(distance * 1000),
+                    inKiloMeter: distance >= 1,
+                    id: nearestShop._id,
+                    medicines: nearestShop.medicines.filter(med => med.name.toLowerCase() === medicineName.toLowerCase())
+                });
             }
         }
-        if (nearestShop) {
-            return [{ name: nearestShop.name, latitude: nearestShop.latitude, longitude: nearestShop.longitude, distance: minDistance >= 1 ? minDistance.toFixed(1) : Math.round(minDistance * 1000), inKiloMeter: minDistance >= 1 }];
+        // If no shops found within the max distance, find the nearest one
+        if (nearbyShops.length === 0) {
+            let minDistance = Infinity;
+            let nearestShop = null;
+            for (const shop of medicalShops) {
+                const distance = getDistance(userLat, userLon, shop.location.latitude, shop.location.longitude);
+                if (distance < minDistance) {
+                    minDistance = distance;
+                    nearestShop = shop;
+                }
+            }
+            if (nearbyShops) {
+                let filtered = nearestShop.medicines.filter(med => med.name.toLowerCase() === medicineName.toLowerCase());
+                if(filtered.length > 0) return [];
+                return [{ name: nearestShop.ShopName, latitude: nearestShop.latitude, longitude: nearestShop.longitude, distance: minDistance >= 1 ? minDistance.toFixed(1) : Math.round(minDistance * 1000), inKiloMeter: minDistance >= 1, id: nearestShop._id, medicines: nearestShop.medicines.filter(med => med.name.toLowerCase() === medicineName.toLowerCase()) }];
+            }else{
+                return [];
+            }
         }
-    }
 
-    return nearbyShops;
+        return nearbyShops;
+
+    } catch (error) {
+        console.log(error);
+        return null;
+    }
 }
 
 
@@ -211,7 +232,33 @@ exports.findMedicines = async (req, res) => {
             nearbyShops
         })
     } catch (error) {
-
+        console.log(error);
     }
 
+}
+
+
+exports.updateLocation = async (req, res) => {
+    try {
+        const user = await User.findById(req.user.id);
+        if (!user) {
+            return res.status(401).json({
+                success: false,
+                message: "Invalid user"
+            })
+        }
+
+        user.location.latitude = req.body.latitude;
+        user.location.longitude = req.body.longitude;
+
+        await user.save();
+
+        res.status(200).json({
+            success: true,
+            user
+        })
+
+    } catch (error) {
+
+    }
 }

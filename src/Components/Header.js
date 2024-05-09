@@ -3,10 +3,12 @@ import {
   SearchRounded,
   ShoppingCartRounded,
 } from "@mui/icons-material";
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import { useStateValue } from "./StateProvider";
+import axios from "axios";
+import { MDBBtn } from "mdb-react-ui-kit";
 
-function Header({ user }) {
+function Header({ user,result,setResult }) {
   const [{ cart }, dispatch] = useStateValue();
 
   useEffect(() => {
@@ -16,6 +18,22 @@ function Header({ user }) {
     });
   }, []);
 
+  const [search, setSearch] = useState("");
+  const [searchData, setSearchData] = useState(null);
+  const find = async () => {
+    try {
+      if (search.replace(" ", "").length <= 0) return;
+      const resp = await axios.get(`/api/v1/get/medicines?userLat=${user.location.latitude}&userLon=${user.location.longitude}&medicineName=${search}&maxDistance=50 `)
+      if (resp.data.success){
+        setSearchData(resp.data.nearbyShops);
+        setResult(resp.data.nearbyShops);
+        console.log(resp.data.nearbyShops);
+      } 
+
+    } catch (error) {
+
+    }
+  }
   return (
     <header>
       <img
@@ -26,9 +44,10 @@ function Header({ user }) {
 
       <div className="inputBox">
         <SearchRounded className="searchIcon" />
-        <input type="text" placeholder="Search" />
+        <input type="text" placeholder="Search" onChange={(e) => { setSearch(e.target.value);}} value={search} />
+        <MDBBtn onClick={find} className="searchBtn" color="primary" >Find</MDBBtn>
       </div>
-
+    
       <div className="shoppingCart">
         <ShoppingCartRounded className="cart" />
         <div className={`${!cart ? "noCartItem" : "cart_content"}`}>

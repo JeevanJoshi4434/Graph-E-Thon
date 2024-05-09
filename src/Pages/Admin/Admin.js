@@ -1,4 +1,4 @@
-import React from 'react'
+import React, {useEffect, useState} from 'react'
 import OrderTable from './OrderTable'
 import Nav from '../../Components/AdminNav'
 import { MDBBadge, MDBBtn } from 'mdb-react-ui-kit';
@@ -7,6 +7,7 @@ import MarkOptimization from './Chart';
 import AddStock from './AddItem';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
+import { Map } from '../Map/Map';
 
 const Admin = () => {
   const dummyData = [
@@ -139,9 +140,14 @@ const Admin = () => {
       navigate('/login');
     }
   }
+
+  useEffect(() => {
+    getUser();
+  }, [])
+  
   return (
     <div>
-      <Nav />
+      <Nav getUser={getUser} />
       <div className=' h-full w-full grid md:grid-cols-2 grid-cols-1 gap-2 p-3'>
         <div className=' h-full w-full grid md:grid-cols-2 grid-cols-1 gap-2 p-3'>
           <div class="card text-center ">
@@ -173,7 +179,8 @@ const Admin = () => {
       </div>
       <div className=' h-full w-full grid md:grid-cols-1 grid-cols-1 gap-2 p-3'>
         <OrderTable more data={dummyData} />
-        <StockTable data={user.medicines ? user.medicines : []} />
+        <StockTable data={user ? user.medicines : []} />
+        <Map longitude={user ? user.location.longitude : 0} latitude={user ? user.location.latitude : 0} />
       </div>
     </div>
   )

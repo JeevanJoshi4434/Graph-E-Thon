@@ -153,28 +153,43 @@ exports.updateDelivery = async () => {
     }
 }
 
-exports.reduceQuantityFromInventory = async () => {
+exports.reduceQuantityFromInventory = async (req, res) => {
     try {
-        const { productDetail, userID } = req.body;
-        const shop = await User.findById(userID);
+        const { productDetail } = req.body;
+        const shop = await User.findById(req.user.id);
+
+        if (!shop) {
+            return res.status(404).json({ success: false, message: 'Shop not found' });
+        }
+
         const { quantity, _id } = productDetail;
-        const inventory = shop.inventory;
-        const index = inventory.findIndex((item) => item._id.toString() === _id.toString());
-        inventory[index].quantity = inventory[index].quantity - quantity;
-        await shop.save();
+        const inventory = shop.medicines;
+        const index = inventory.findIndex(item => item._id.toString() === _id.toString());
+
+        if (index === -1) {
+            return res.status(404).json({ success: false, message: 'Product not found in inventory' });
+        }
+        shop.medicines[index].quantity = quantity;
+        const updatedInventory = shop.medicines;
+        const updateStore = await User.findByIdAndUpdate(req.user.id, {
+            $set: {
+                medicines: updatedInventory
+            }
+        })
         res.status(200).json({
             success: true,
-            inventory
+            inventory: quantity // Return the updated inventory
         });
     } catch (error) {
+        console.error(error);
         res.status(500).json({
             success: false,
             message: error.message
-        })
+        });
     }
-}
+};
 
-exports.getRecommendationMedicines = async () => {
+exports.getRecommendationMedicines = async (req,res) => {
     try {
 
         const shops = await User.find({ isMedical: true });
@@ -185,17 +200,19 @@ exports.getRecommendationMedicines = async () => {
             medicinesAvailable = [];
             for (let j = 0; j < shopMedicines.length; j++) {
                 const medicine = shopMedicines[j];
-                if (medicine.stock > 0) {
+                if (medicine.quantity > 0) {
                     medicinesAvailable.push(medicine);
                 }
             }
             const result = {
-                shopName: shop.name,
+                shopName: shop.ShopName,
+                owner: shop.name,
                 medicines: medicinesAvailable,
-                shopID: shop._id
-            }
+                shopID: shop._id.toString(),
+                }
             medicines.push(result);
         }
+        console.log(medicines);
         res.status(200).json({
             success: true,
             medicines
@@ -211,4 +228,83 @@ exports.getRecommendationMedicines = async () => {
 
 const getOTP = () => {
     return Math.floor(100000 + Math.random() * 900000);
+}
+
+
+// Function to calculate distance between two points using Haversine formula
+function getDistance(lat1, lon1, lat2, lon2) {
+    console.log(lat1,lat2,lon1,lon2);
+    const R = 6371; // Radius of the Earth in kilometers
+    const dLat = deg2rad(lat2 - lat1);
+    const dLon = deg2rad(lon2 - lon1);
+    const a =
+        Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+        Math.cos(deg2rad(lat1)) * Math.cos(deg2rad(lat2)) *
+        Math.sin(dLon / 2) * Math.sin(dLon / 2);
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+    const distance = R * c; // Distance in kilometers
+    return distance;
+}
+
+function deg2rad(deg) {
+    return deg * (Math.PI / 180);
+}
+
+// Function to find nearby medical shops within a specified range and their available medicines
+async function recommendNearbyMedicalShops(userLat, userLon, maxDistance) {
+    try {
+
+        const medicalShops = await User.find({ isMedical: true });
+        const nearbyShops = [];
+        console.log(medicalShops)
+        for (const shop of medicalShops) {
+            const distance = getDistance(userLat, userLon, shop.location.latitude, shop.location.longitude);
+            console.log(distance);
+            if (distance <= maxDistance) {
+                nearbyShops.push({
+                    name: shop.name,
+                    shopName: shop.ShopName,
+                    latitude: shop.latitude,
+                    longitude: shop.longitude,
+                    distance,
+                    medicines: shop.medicines.filter(med => med.quantity > 0),
+                    id: shop._id
+                });
+            }
+        }
+
+        return nearbyShops;
+
+    } catch (e) {
+        console.error(e);
+        return null;
+    }
+}
+
+// Recommendation route to recommend nearby medical shops and their available medicines within a range of 80km
+exports.recommendMedicalShops = async (req, res) => {
+    try {
+        const { userLat, userLon } = req.query;
+        console.log(userLat,userLon,"J")
+        const maxDistance = 80; // Maximum distance in kilometers
+
+        const recommendedShops = await recommendNearbyMedicalShops(userLat, userLon, maxDistance);
+        if (!recommendedShops || recommendedShops.length === 0) {
+            return res.status(404).json({
+                success: false,
+                message: "No medical shops found within the specified range."
+            });
+        }
+
+        res.status(200).json({
+            success: true,
+            recommendedShops
+        });
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({
+            success: false,
+            message: "Internal server error."
+        });
+    }
 }

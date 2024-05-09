@@ -1,52 +1,121 @@
 import { useEffect, useState } from "react";
 import Header from "../../Components/Header";
-import MenuContainer from "../../Components/MenuContainer";
-import {
-  AccountBalanceWalletRounded,
-  Chat,
-  Favorite,
-  HomeRounded,
-  Settings,
-  SummarizeRounded,
-} from "@mui/icons-material";
 import BannerName from "../../Components/BannerName";
 import MenuCard from "../../Components/MenuCard";
 import { MenuItems, Items } from "../../Components/Data";
 import ItemCard from "../../Components/ItemCard";
-import DebitCard from "../../Components/DebitCard";
 import SubMenuContainer from "../../Components/SubMenuContainer";
 import CartItem from "../../Components/CartItem";
-import { useStateValue } from "../../Components/StateProvider";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
-import { CircularProgress } from "@mui/material";
+import { CircularProgress, Skeleton } from "@mui/material";
 
 function Home() {
   const [isMainData, setMainData] = useState(
     Items.filter((element) => element.itemId == "buger01")
   );
 
-  const [{ cart, total }, dispatch] = useStateValue();
+  const [cart, setCart] = useState([]);
+  const [totalCount, setTotalCount] = useState(0);
+  const [totalP, setTotalP] = useState(0);
+  const [loading, setLoading] = useState(false);
+  const addToCart = (owner, medicine) => {
+    setLoading(true);
+    const updatedCart = [...cart];
+    const existingItem = updatedCart.find(item => item._id === medicine._id);
+
+    if (existingItem) {
+      // If the medicine is already in the cart, increase its quantity
+      if (existingItem.quantity < 5)
+        existingItem.quantity++;
+    } else {
+      // If the medicine is not in the cart, add it
+      updatedCart.push({ ...medicine, quantity: 1, shopId: owner.id, shopName: owner.shopName, distance: owner.distance });
+    }
+
+    // Update cart
+    setCart(updatedCart);
+
+    // Update total count
+    setTotalCount(updatedCart.reduce((total, item) => total + item.quantity, 0));
+
+    // Update total price
+    setTotalP(updatedCart.reduce((total, item) => total + (item.price * item.quantity), 0));
+
+    setTimeout(() => {
+      setLoading(false);
+    }, 200);
+  };
+
+  const removeFromCart = (medicineId) => {
+    // Remove medicine from cart
+    setLoading(true);
+    const updatedCart = cart.filter(item => item._id !== medicineId);
+
+    // Update cart
+    setCart(updatedCart);
+
+    // Update total count
+    setTotalCount(updatedCart.reduce((total, item) => total + item.quantity, 0));
+
+    // Update total price
+    setTotalP(updatedCart.reduce((total, item) => total + (item.price * item.quantity), 0));
+    setTimeout(() => {
+      setLoading(false);
+    }, 200);
+  };
+
   const [totalPrice, setTotalPrice] = useState(0);
   const [user, setUser] = useState(null);
   const [loader, setLoader] = useState(true);
+  const [recommendedData, setRecommendedData] = useState({
+    nearby: [],
+    all: []
+  })
   let navigate = useNavigate();
   const myInfo = async () => {
     try {
       const response = await axios.get('/api/v1/me');
       if (response.data.success) {
-        console.log(response.data.user)
-        setUser(response.data.user)
-      } else{
+        setUser(response.data.user);
+        getNearbyRecommendedData(response.data.user);
+      } else {
         navigate('/login');
       }
     } catch (error) {
-      console.log(error)
       navigate('/login');
     } finally {
       setLoader(false);
     }
   }
+
+  const getNearbyRecommendedData = async (user) => {
+    try {
+      const response = await axios.get(`/api/v1/get/nearby/recommendation?userLat=${user?.location?.latitude}&userLon=${user?.location?.longitude}`);
+      if (response.data.success) {
+        setRecommendedData({ recommendedData, nearby: response.data.recommendedShops })
+
+      } else {
+        navigate('/login');
+      }
+    } catch (error) {
+      navigate('/login');
+    }
+  }
+
+  const getRecommendedData = async () => {
+    try {
+      const response = await axios.get('/api/v1/get/recommendation');
+      if (response.data.success) {
+        setRecommendedData({ recommendedData, all: response.data.medicines })
+      } else {
+        navigate('/login');
+      }
+    } catch (error) {
+      navigate('/login');
+    }
+  }
+
   useEffect(() => {
     const menuLi = document.querySelectorAll("#menu li");
 
@@ -68,22 +137,27 @@ function Home() {
     }
 
     menuCard.forEach((n) => n.addEventListener("click", setMenuCardActive));
-  }, [isMainData, cart, total, totalPrice]);
+  }, [isMainData, cart, totalP, totalPrice]);
 
   useEffect(() => {
     myInfo();
+    getRecommendedData();
   }, [])
 
   const setData = (itemId) => {
     setMainData(Items.filter((element) => element.itemId == itemId));
   };
 
+  const print = () => {
+    console.log(cart, totalP);
+  }
+  const [searchResult, setSearchResult] = useState([]);
 
   return (
     <>
       <div className={`App ${loader ? "hidden" : ""}`}>
         {/* Header section */}
-        {user && <Header user={user} />}
+        {user && <Header setResult={setSearchResult} result={searchResult} user={user} />}
 
         {/* Left menu */}
 
@@ -95,6 +169,36 @@ function Home() {
             </div>
 
             <div className="dishContainer">
+              {searchResult.length > 0 &&
+                <>
+                  <p className="text-md font-bold">Search Result</p>
+                  <div className="dishItemContainer grid grid-cols-4">
+                    {searchResult?.length > 0 &&
+                      searchResult?.map((i) => {
+                        return i.medicines.map((data) => (
+                          <ItemCard
+                            imgSrc={"https://static.vecteezy.com/system/resources/previews/000/637/367/original/vector-medicine-icon-symbol-sign.jpg"}
+                            data={i.medicines}
+                            key={data._id}
+                            inKilo={i.inKiloMeter}
+                            specific
+                            itemId={data._id}
+                            name={data.name}
+                            price={data.price}
+                            shopId={i.id}
+                            shopName={i.shopName}
+                            provider={i.name}
+                            distance={i.distance}
+                            setTotalPrice={setTotalP}
+                            addToCart={() => { addToCart(i, data) }}
+                          />
+                        ))
+                      })
+                    }
+                  </div>
+                </>
+              }
+
               <div className="menuCard">
                 <SubMenuContainer />
               </div>
@@ -111,20 +215,30 @@ function Home() {
                     </div>
                   ))}
               </div>
-
-              <div className="dishItemContainer">
-                {isMainData &&
-                  isMainData.map((data) => (
-                    <ItemCard
-                      key={data.id}
-                      itemId={data.id}
-                      imgSrc={data.imgSrc}
-                      name={data.name}
-                      ratings={data.ratings}
-                      price={data.price}
-                    />
-                  ))}
+              <p className="text-sm">Nearby Medicines <span className="text-xs text-gray-500">(within 50km range)</span></p>
+              <div className="dishItemContainer grid grid-cols-4">
+                {recommendedData.nearby?.length > 0 &&
+                  recommendedData.nearby?.map((i) => {
+                    return i.medicines.map((data) => (
+                      <ItemCard
+                        imgSrc={"https://static.vecteezy.com/system/resources/previews/000/637/367/original/vector-medicine-icon-symbol-sign.jpg"}
+                        data={i.medicines}
+                        key={data._id}
+                        itemId={data._id}
+                        name={data.name}
+                        price={data.price}
+                        shopId={i.id}
+                        shopName={i.shopName}
+                        provider={i.name}
+                        distance={i.distance}
+                        setTotalPrice={setTotalP}
+                        addToCart={() => { addToCart(i, data) }}
+                      />
+                    ))
+                  })
+                }
               </div>
+             
             </div>
           </div>
           <div className="rightMenu">
@@ -142,17 +256,26 @@ function Home() {
               <div className="cartCheckOutContianer">
                 <div className="cartContainer">
                   <SubMenuContainer />
-
                   <div className="cartItems">
-                    {cart &&
+                    {loading && <div className="flex gap-2 flex-col w-full">
+                      <Skeleton variant="rounded" height={60} />
+                      <Skeleton variant="rounded" height={60} />
+                      <Skeleton variant="rounded" height={60} />
+                      <Skeleton variant="rounded" height={60} />
+                    </div>}
+                    {!loading &&
                       cart.map((data) => (
                         <CartItem
-                          key={data.id}
-                          itemId={data.id}
+                          key={data._id}
+                          itemId={data._id}
                           name={data.name}
-                          imgSrc={data.imgSrc}
-                          qty={"4"}
+                          data={data}
+                          imgSrc={"https://static.vecteezy.com/system/resources/previews/000/637/367/original/vector-medicine-icon-symbol-sign.jpg"}
+                          qty={data.quantity}
                           price={data.price}
+                          setCart={setCart}
+                          cart={cart}
+                          removeFromCart={() => { removeFromCart(data._id) }}
                         />
                       ))}
                   </div>
@@ -160,10 +283,10 @@ function Home() {
                 <div className="totalSection">
                   <h3>Total</h3>
                   <p>
-                    <span>₹ </span> {total}
+                    <span>₹ </span> {totalP}
                   </p>
                 </div>
-                <button className="checkOut">Check Out</button>
+                <button onClick={print} className="checkOut">Check Out</button>
               </div>
             )}
           </div>
@@ -177,14 +300,14 @@ function Home() {
 }
 
 export const BigScreenLoader = ({ text = "", desc = "" }) => {
-    return (
-        <div style={{ position: 'absolute', height: '100vh', width: '100vw', zIndex: '9999', backgroundColor: "rgba(255,255,255,1)", alignItems: 'center', justifyContent: 'center' }} className='z-[9999] d-flex'>
-            <div style={{ alignItems: 'center', justifyContent: 'center', flexDirection: 'column' }} className='d-flex flex-col justify-center items-center'>
-                <CircularProgress size={19} />
-                <p className='font-bold text-lg text-black'>{text}</p>
-                <p className='text-sm text-black'>{desc}</p>
-            </div>
-        </div>
-    )
+  return (
+    <div style={{ position: 'absolute', height: '100vh', width: '100vw', zIndex: '9999', backgroundColor: "rgba(255,255,255,1)", alignItems: 'center', justifyContent: 'center' }} className='z-[9999] d-flex'>
+      <div style={{ alignItems: 'center', justifyContent: 'center', flexDirection: 'column' }} className='d-flex flex-col justify-center items-center'>
+        <CircularProgress size={19} />
+        <p className='font-bold text-lg text-black'>{text}</p>
+        <p className='text-sm text-black'>{desc}</p>
+      </div>
+    </div>
+  )
 }
 export default Home;

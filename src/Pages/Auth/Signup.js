@@ -92,7 +92,11 @@ function Signup() {
                 name: data.name, email: data.email, password: data.password, ShopName: data.ShopName, isMedical: isMedical, latitude: location.latitude, longitude: location.longitude 
             })
             if(res.data.success){
-                history('/');
+                if(isMedical){
+                    history('/dashboard');
+                }else{
+                    history('/');
+                }
             }
         } catch (error) {
             
@@ -167,7 +171,7 @@ function Signup() {
 
 export const BigScreenLoader = ({ text = "", desc = "" }) => {
     return (
-        <div style={{ position: 'absolute', height: '100vh', width: '100vw', zIndex: '9999', backgroundColor: "rgba(0,0,0,0.5)", alignItems: 'center', justifyContent: 'center' }} className='z-[9999] d-flex'>
+        <div style={{ position: 'absolute', height: '100vh', width: '100vw', zIndex: '9999', backgroundColor: "rgba(255,255,255,0.5)", alignItems: 'center', justifyContent: 'center' }} className='z-[9999] d-flex'>
             <div style={{ alignItems: 'center', justifyContent: 'center', flexDirection: 'column' }} className='d-flex flex-col justify-center items-center'>
                 <CircularProgress size={19} />
                 <p className='font-bold text-lg text-black'>{text}</p>
