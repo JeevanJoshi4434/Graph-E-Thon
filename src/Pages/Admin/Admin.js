@@ -5,6 +5,8 @@ import { MDBBadge, MDBBtn } from 'mdb-react-ui-kit';
 import StockTable from './StockTable';
 import MarkOptimization from './Chart';
 import AddStock from './AddItem';
+import axios from 'axios';
+import { useNavigate } from 'react-router-dom';
 
 const Admin = () => {
   const dummyData = [
@@ -124,6 +126,19 @@ const Admin = () => {
       pillsPerBox: 10
     },
   ]
+  const [user, setUser] = useState(null);
+  const navigate = useNavigate();
+  const getUser = async()=>{
+    try {
+      const res = await axios.get('api/v1/me');
+      if(res.data.success){
+        setUser(res.data.user)
+      }
+    } catch (error) {
+      console.log(error);
+      navigate('/login');
+    }
+  }
   return (
     <div>
       <Nav />
@@ -158,7 +173,7 @@ const Admin = () => {
       </div>
       <div className=' h-full w-full grid md:grid-cols-1 grid-cols-1 gap-2 p-3'>
         <OrderTable more data={dummyData} />
-        <StockTable data={dummyMedicineData} />
+        <StockTable data={user.medicines ? user.medicines : []} />
       </div>
     </div>
   )
