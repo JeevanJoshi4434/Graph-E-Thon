@@ -7,7 +7,7 @@ import { StateProvider } from "./Components/StateProvider";
 import reducer, { initialState } from "./Components/reducer";
 import 'mdb-react-ui-kit/dist/css/mdb.min.css';
 import "@fortawesome/fontawesome-free/css/all.min.css";
-
+import 'mapbox-gl/dist/mapbox-gl.css';
 ReactDOM.render(
   <React.StrictMode>
     <StateProvider initialState={initialState} reducer={reducer}>

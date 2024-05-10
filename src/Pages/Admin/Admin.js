@@ -8,6 +8,7 @@ import AddStock from './AddItem';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
 import { Map } from '../Map/Map';
+import MapBox from '../Map/MapBox';
 
 const Admin = () => {
   const dummyData = [
@@ -148,39 +149,16 @@ const Admin = () => {
   return (
     <div>
       <Nav getUser={getUser} />
+        <p className='text-md font-bold'>Your Location</p>
       <div className=' h-full w-full grid md:grid-cols-2 grid-cols-1 gap-2 p-3'>
-        <div className=' h-full w-full grid md:grid-cols-2 grid-cols-1 gap-2 p-3'>
-          <div class="card text-center ">
-            <div class="card-body">
-              <h5 class="card-title">Earning:</h5>
-              <p class="card-text">
-                ₹5000
-              </p>
-              <p className='text'>
-                <MDBBadge color='success' pill>{((5000/(1200+5000))*100).toFixed(2)}% Profit</MDBBadge>
-              </p>
-            </div>
-            <div class="card-footer">last 30 days</div>
-          </div>
-          <div class="card text-center ">
-            <div class="card-body">
-              <h5 class="card-title">Loss:</h5>
-              <p class="card-text">
-                ₹1200
-              </p>
-              <p className='text'>
-                <MDBBadge color='danger' pill>{((1200/(1200+5000))*100).toFixed(2)}% Loss</MDBBadge>
-              </p>
-            </div>
-            <div class="card-footer">last 30 days</div>
-          </div>
+        <div className=' h-full w-full grid grid-cols-1 p-3'>
+          {user && <MapBox user={user} locations={[]} />}
         </div>
         <MarkOptimization />
       </div>
       <div className=' h-full w-full grid md:grid-cols-1 grid-cols-1 gap-2 p-3'>
         <OrderTable more data={dummyData} />
         <StockTable data={user ? user.medicines : []} />
-        <Map longitude={user ? user.location.longitude : 0} latitude={user ? user.location.latitude : 0} />
       </div>
     </div>
   )

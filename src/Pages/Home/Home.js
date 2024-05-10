@@ -9,6 +9,9 @@ import CartItem from "../../Components/CartItem";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
 import { CircularProgress, Skeleton } from "@mui/material";
+import MapBox from "../Map/MapBox";
+import FullScreenModal from "../../Components/FullScreenModal";
+import Checkout from "../Checkout/Checkout";
 
 function Home() {
   const [isMainData, setMainData] = useState(
@@ -19,6 +22,7 @@ function Home() {
   const [totalCount, setTotalCount] = useState(0);
   const [totalP, setTotalP] = useState(0);
   const [loading, setLoading] = useState(false);
+  const [show, setShow] = useState(false);
   const addToCart = (owner, medicine) => {
     setLoading(true);
     const updatedCart = [...cart];
@@ -98,7 +102,7 @@ function Home() {
 
       } 
     } catch (error) {
-      if(error.response.status !== 404)
+      if(error.response?.status !== 404)
       navigate('/login');
     }
   }
@@ -197,7 +201,8 @@ function Home() {
                   </div>
                 </>
               }
-
+              <p className="text-md font-bold">Nearby Shops Location</p>
+              {recommendedData.nearby?.length > 0 && user && <MapBox user={user} locations={recommendedData.nearby} />}
               <div className="menuCard">
                 <SubMenuContainer />
               </div>
@@ -231,6 +236,9 @@ function Home() {
                         provider={i.name}
                         distance={i.distance}
                         setTotalPrice={setTotalP}
+                        pills={data.pillsPerBox}
+                        lat={i.latitude}
+                        lng={i.longitude}
                         addToCart={() => { addToCart(i, data) }}
                       />
                     ))
@@ -285,12 +293,13 @@ function Home() {
                     <span>₹ </span> {totalP}
                   </p>
                 </div>
-                <button onClick={print} className="checkOut">Check Out</button>
+                <button onClick={() => setShow(true)} className="checkOut">Check Out</button>
               </div>
             )}
           </div>
         </main>
       </div>
+      <FullScreenModal children={<Checkout cart={cart} setCart={setCart} totalP={totalP} setTotalP={setTotalP} />} show={show} setShow={setShow} />
       {
         loader && <BigScreenLoader text={"Loading..."} desc={""} />
       }

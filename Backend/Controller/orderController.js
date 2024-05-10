@@ -264,8 +264,8 @@ async function recommendNearbyMedicalShops(userLat, userLon, maxDistance) {
                 nearbyShops.push({
                     name: shop.name,
                     shopName: shop.ShopName,
-                    latitude: shop.latitude,
-                    longitude: shop.longitude,
+                    latitude: shop.location.latitude,
+                    longitude: shop.location.longitude,
                     distance,
                     medicines: shop.medicines.filter(med => med.quantity > 0),
                     id: shop._id
