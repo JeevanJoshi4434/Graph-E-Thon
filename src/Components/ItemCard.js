@@ -10,7 +10,7 @@ function ItemCard({ itemId, data,shopId,addToCart=(medicine)=>{}, imgSrc, name, 
   const [isFavourite, setFavourite] = useState(false);
   const [{}, dispatch] = useStateValue();
   const [isCart, setCart] = useState(null);
-
+  const [Distance, setDistance] = useState(distance < 0 ? Math.abs(distance) : distance);
   useEffect(() => {
     if (isCart) {
       cartData.push(isCart);
@@ -32,8 +32,8 @@ function ItemCard({ itemId, data,shopId,addToCart=(medicine)=>{}, imgSrc, name, 
       </div>
       <div className="itemContent" style={{minHeight:"191.2px",height:"191.2px",maxHeight:"191.2px"}}>
         <h3 className="itemName">{name}</h3>
-        {!specific && <p className=" text-xs" >{shopName} - {distance > 0 ? `${distance.toFixed(2)} km`: `${Math.round(distance * 1000)} m`} away</p>}
-        {specific && <p className=" text-xs" >{shopName} - {distance} {inKilo ? "km" : "m"} away</p>}
+        {!specific && <p className=" text-xs" >{shopName} | {Distance > 0 ? `${Distance.toFixed(2)} km`: `${Math.round(Distance * 1000)} m`} away</p>}
+        {specific && <p className=" text-xs" >{shopName} | {Distance} {inKilo ? "km" : "m"} away</p>}
         <p className="text-[8px] text-gray-500">{provider}</p>
         <div className="bottom">
           <div className="ratings">

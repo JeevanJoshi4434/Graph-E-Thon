@@ -1,5 +1,6 @@
 import {
   BarChart,
+  Logout,
   SearchRounded,
   ShoppingCartRounded,
 } from "@mui/icons-material";
@@ -23,7 +24,7 @@ function Header({ user,result,setResult }) {
   const find = async () => {
     try {
       if (search.replace(" ", "").length <= 0) return;
-      const resp = await axios.get(`/api/v1/get/medicines?userLat=${user.location.latitude}&userLon=${user.location.longitude}&medicineName=${search}&maxDistance=50 `)
+      const resp = await axios.get(`/api/v1/get/medicines?userLat=${user.location.latitude}&userLon=${user.location.longitude}&medicineName=${search}&maxDistance=150 `)
       if (resp.data.success){
         setSearchData(resp.data.nearbyShops);
         setResult(resp.data.nearbyShops);
@@ -49,10 +50,8 @@ function Header({ user,result,setResult }) {
       </div>
     
       <div className="shoppingCart">
-        <ShoppingCartRounded className="cart" />
-        <div className={`${!cart ? "noCartItem" : "cart_content"}`}>
-          <p>{cart ? cart.length : ""}</p>
-        </div>
+        <a href="/login"><Logout />
+        </a>
       </div>
 
       <div className="profileContainer">

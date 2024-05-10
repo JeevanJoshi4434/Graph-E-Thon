@@ -285,8 +285,7 @@ async function recommendNearbyMedicalShops(userLat, userLon, maxDistance) {
 exports.recommendMedicalShops = async (req, res) => {
     try {
         const { userLat, userLon } = req.query;
-        console.log(userLat,userLon,"J")
-        const maxDistance = 80; // Maximum distance in kilometers
+        const maxDistance = 150; // Maximum distance in kilometers
 
         const recommendedShops = await recommendNearbyMedicalShops(userLat, userLon, maxDistance);
         if (!recommendedShops || recommendedShops.length === 0) {

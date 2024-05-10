@@ -85,11 +85,16 @@ function Signup() {
         }
     }
 
+    const test=()=>{
+        console.log("Hello World!");
+    }
+
     const createAccount = async()=>{
         setLoader({ ...Loader, visible: true, text: 'Creating Account', desc: 'Please wait while we are creating your account' });
         try {
+            console.log("ADd");
             const res = await axios.post('/api/v1/register', {
-                name: data.name, email: data.email, password: data.password, ShopName: data.ShopName, isMedical: isMedical, latitude: location.latitude, longitude: location.longitude 
+                name: data.name, email: data.email, password: data.password, ShopName: data.ShopName||'', isMedical: isMedical, latitude: location.latitude, longitude: location.longitude 
             })
             if(res.data.success){
                 if(isMedical){
@@ -107,7 +112,7 @@ function Signup() {
     return (
         <>
             {
-                Screen == 0 ?
+                Screen === 0 ?
                     <>
                         <MDBModal staticBackdrop tabIndex='-1' open={centredModal} onClose={() => setCentredModal(false)}>
                             <MDBModalDialog centered>
@@ -152,7 +157,7 @@ function Signup() {
                                     <MDBCheckbox name='flexCheck' id='flexCheckDefault' label='I agree all statements in Terms of service' />
                                 </div>
                                 <div>
-                                    {!location && isMedical &&
+                                    {!location && 
                                         <MDBBtn color='secondary' onClick={getLocation}>
                                             Fetch Location
                                         </MDBBtn>}

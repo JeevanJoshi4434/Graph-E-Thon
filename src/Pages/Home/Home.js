@@ -83,6 +83,7 @@ function Home() {
         navigate('/login');
       }
     } catch (error) {
+      
       navigate('/login');
     } finally {
       setLoader(false);
@@ -95,10 +96,9 @@ function Home() {
       if (response.data.success) {
         setRecommendedData({ recommendedData, nearby: response.data.recommendedShops })
 
-      } else {
-        navigate('/login');
-      }
+      } 
     } catch (error) {
+      if(error.response.status !== 404)
       navigate('/login');
     }
   }
@@ -108,10 +108,9 @@ function Home() {
       const response = await axios.get('/api/v1/get/recommendation');
       if (response.data.success) {
         setRecommendedData({ recommendedData, all: response.data.medicines })
-      } else {
-        navigate('/login');
       }
     } catch (error) {
+      if(error.response.status !== 404)
       navigate('/login');
     }
   }
